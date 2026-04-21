@@ -1,0 +1,48 @@
+# MMEX Web — rewrite minimal compatible mutualisé
+# Si tu vois encore un 500, commente l'une après l'autre les sections
+# <IfModule …> en partant du bas pour isoler la directive fautive.
+
+<IfModule mod_rewrite.c>
+    RewriteEngine On
+
+    # Dans un sous-dossier : dé-commenter avec le chemin exact
+    # RewriteBase /
+
+    # Bloque l'accès aux dossiers internes
+    RewriteRule ^app/       - [F,L]
+    RewriteRule ^prototype/ - [F,L]
+
+    # Fichiers réels (services.php, assets/...) servis directement
+    RewriteCond %{REQUEST_FILENAME} -f [OR]
+    RewriteCond %{REQUEST_FILENAME} -d
+    RewriteRule ^ - [L]
+
+    # Reste → front controller
+    RewriteRule ^ index.php [L]
+</IfModule>
+
+# Empêche le téléchargement direct du .db et de config.php
+<FilesMatch "\.(db|sqlite|sqlite3)$">
+    Require all denied
+</FilesMatch>
+<Files "config.php">
+    Require all denied
+</Files>
+
+# Types MIME pour la PWA
+<IfModule mod_mime.c>
+    AddType application/manifest+json  .webmanifest
+    AddType image/svg+xml              .svg
+    AddType application/javascript     .js
+</IfModule>
+
+# Le service worker doit être servi depuis la racine du scope pour couvrir toute l'app
+<Files "sw.js">
+    Header set Service-Worker-Allowed "/"
+    Header set Cache-Control "no-cache, no-store, must-revalidate"
+</Files>
+
+# Manifeste : révalidation fréquente pour que les mises à jour d'icônes / theme_color soient prises
+<Files "manifest.webmanifest">
+    Header set Cache-Control "public, max-age=300"
+</Files>
