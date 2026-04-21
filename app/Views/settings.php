@@ -38,7 +38,7 @@ $statuses = ['N', 'R', 'F', 'D', 'V'];
 <html lang="<?= $e($locale) ?>">
 <head>
   <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,interactive-widget=resizes-content">
   <meta name="theme-color" content="#4f46e5">
   <title><?= $e($t('settings.title')) ?> — MMEX Web</title>
   <script src="https://cdn.tailwindcss.com"></script>

@@ -42,7 +42,7 @@ $bootData = [
 <html lang="fr">
 <head>
   <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,interactive-widget=resizes-content">
   <meta name="theme-color" content="#4f46e5">
   <title><?= $e($edit ? $t('tx.edit') : $t('tx.new') . ' ' . $t('tx.withdrawal')) ?> — MMEX Web</title>
   <script src="https://cdn.tailwindcss.com"></script>
@@ -119,7 +119,12 @@ $bootData = [
         <button type="button" @click="press('00')" class="keypad-key h-14 rounded-xl bg-white border border-slate-200 text-base font-medium tabular-nums">00</button>
         <button type="button" @click="press('0')" class="keypad-key h-14 rounded-xl bg-white border border-slate-200 text-xl font-medium tabular-nums col-span-2">0</button>
         <button type="button" @click="press('.')" class="keypad-key h-14 rounded-xl bg-white border border-slate-200 text-xl font-medium tabular-nums">,</button>
-        <button type="button" @click="pasteQuick()" class="keypad-key h-14 rounded-xl bg-white border border-slate-200 text-slate-500 text-xs font-medium">↩</button>
+        <button type="button" @click="pasteQuick()" class="keypad-key h-14 rounded-xl bg-white border border-slate-200 text-slate-500 flex items-center justify-center" :aria-label="boot.strings.last_tx_reused || 'Reuse last'">
+          <svg class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <polyline points="1 4 1 10 7 10"/>
+            <path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10"/>
+          </svg>
+        </button>
       </div>
     </div>
   </section>
@@ -295,14 +300,14 @@ $bootData = [
   <!-- Account / ToAccount -->
   <template x-for="field in ['account','toAccount']" :key="field">
     <section x-show="sheet === field" x-transition.duration.200ms
-             class="fixed inset-x-0 bottom-0 z-50 bg-white rounded-t-3xl shadow-2xl max-h-[85vh] overflow-hidden pb-safe flex flex-col">
+             class="fixed inset-x-0 top-12 bottom-0 z-50 bg-white rounded-t-3xl shadow-2xl overflow-hidden pb-safe flex flex-col">
       <div class="mx-auto w-full max-w-md p-5 pb-2">
         <div class="h-1 w-10 bg-slate-200 rounded mx-auto mb-4"></div>
         <div class="flex items-center justify-between mb-3">
           <h3 class="text-lg font-semibold" x-text="field === 'account' ? (type === 'Transfer' ? '<?= $e($t('tx.source_account')) ?>' : '<?= $e($t('tx.account')) ?>') : '<?= $e($t('tx.dest_account')) ?>'"></h3>
           <button @click="closeSheet()" class="p-2 text-slate-500">✕</button>
         </div>
-        <input type="text" x-model="search" placeholder="<?= $e($t('tx.search_account')) ?>"
+        <input type="search" x-model="search" autocomplete="off" inputmode="search" enterkeyhint="done" data-lpignore="true" placeholder="<?= $e($t('tx.search_account')) ?>"
                class="w-full h-11 px-4 rounded-xl border border-slate-200 text-base bg-slate-50">
       </div>
       <div class="mx-auto w-full max-w-md flex-1 overflow-y-auto px-5 pb-5 no-scrollbar">
@@ -335,14 +340,14 @@ $bootData = [
 
   <!-- Category -->
   <section x-show="sheet === 'category'" x-transition.duration.200ms
-           class="fixed inset-x-0 bottom-0 z-50 bg-white rounded-t-3xl shadow-2xl max-h-[85vh] overflow-hidden pb-safe flex flex-col">
+           class="fixed inset-x-0 top-12 bottom-0 z-50 bg-white rounded-t-3xl shadow-2xl overflow-hidden pb-safe flex flex-col">
     <div class="mx-auto w-full max-w-md p-5 pb-2">
       <div class="h-1 w-10 bg-slate-200 rounded mx-auto mb-4"></div>
       <div class="flex items-center justify-between mb-3">
         <h3 class="text-lg font-semibold"><?= $e($t('tx.category')) ?></h3>
         <button @click="closeSheet()" class="p-2 text-slate-500">✕</button>
       </div>
-      <input type="text" x-model="search" placeholder="<?= $e($t('tx.search_or_create')) ?>"
+      <input type="search" x-model="search" autocomplete="off" inputmode="search" enterkeyhint="done" data-lpignore="true" placeholder="<?= $e($t('tx.search_or_create')) ?>"
              class="w-full h-11 px-4 rounded-xl border border-slate-200 text-base bg-slate-50">
     </div>
     <div class="mx-auto w-full max-w-md flex-1 overflow-y-auto px-5 pb-5 no-scrollbar">
@@ -394,14 +399,14 @@ $bootData = [
 
   <!-- Payee -->
   <section x-show="sheet === 'payee'" x-transition.duration.200ms
-           class="fixed inset-x-0 bottom-0 z-50 bg-white rounded-t-3xl shadow-2xl max-h-[85vh] overflow-hidden pb-safe flex flex-col">
+           class="fixed inset-x-0 top-12 bottom-0 z-50 bg-white rounded-t-3xl shadow-2xl overflow-hidden pb-safe flex flex-col">
     <div class="mx-auto w-full max-w-md p-5 pb-2">
       <div class="h-1 w-10 bg-slate-200 rounded mx-auto mb-4"></div>
       <div class="flex items-center justify-between mb-3">
         <h3 class="text-lg font-semibold"><?= $e($t('tx.payee')) ?></h3>
         <button @click="closeSheet()" class="p-2 text-slate-500">✕</button>
       </div>
-      <input type="text" x-model="search" placeholder="<?= $e($t('tx.search_or_create')) ?>"
+      <input type="search" x-model="search" autocomplete="off" inputmode="search" enterkeyhint="done" data-lpignore="true" placeholder="<?= $e($t('tx.search_or_create')) ?>"
              class="w-full h-11 px-4 rounded-xl border border-slate-200 text-base bg-slate-50">
     </div>
     <div class="mx-auto w-full max-w-md flex-1 overflow-y-auto px-5 pb-5 no-scrollbar">

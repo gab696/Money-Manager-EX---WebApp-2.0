@@ -10,7 +10,7 @@
 <html lang="fr">
 <head>
   <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,interactive-widget=resizes-content">
   <meta name="theme-color" content="#4f46e5">
   <title><?= $e($t('invite.title', 'Invitation')) ?> — MMEX Web</title>
   <script src="https://cdn.tailwindcss.com"></script>
