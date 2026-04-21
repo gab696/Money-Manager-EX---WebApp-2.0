@@ -125,6 +125,9 @@ final class TransactionController
             Parameter::set('DefaultAccount', $defaultAccount);
         }
 
+        $paypalUrl   = \App\Db::PAYPAL_URL;
+        $donorHidden = \App\Models\User::isDonorHidden((int) \App\Auth::id());
+
         return [
             'accounts'    => $accounts,
             'categories'  => Category::leaves(),
@@ -140,7 +143,33 @@ final class TransactionController
             'disableCategory'    => Parameter::get('DisableCategory') === 'True',
             'pendingCount'       => Transaction::totals()['count'],
             'edit'               => $tx,
+            'jsStrings'          => self::jsStrings(),
+            'jsLocale'           => self::jsLocale(),
+            'paypalUrl'          => $paypalUrl,
+            'donorHidden'        => $donorHidden,
         ];
+    }
+
+    /** Subset des chaînes i18n consommées par assets/app.js (toasts, labels dynamiques). */
+    private static function jsStrings(): array
+    {
+        $keys = [
+            'withdrawal','deposit','transfer','today','yesterday',
+            'amount_required','account_required','toaccount_required',
+            'queued','updated','save','saving','update','new','edit','next','prev','cancel',
+            'payee_created','account_created','category_created',
+            'save_error','network_down','error_prefix','error_unknown',
+            'nothing_to_reuse','last_tx_reused',
+        ];
+        $out = [];
+        foreach ($keys as $k) $out[$k] = \App\I18n::t('tx.' . $k);
+        return $out;
+    }
+
+    /** Locale BCP-47 pour Intl.DateTimeFormat / NumberFormat côté navigateur. */
+    private static function jsLocale(): string
+    {
+        return \App\I18n::locale() === 'fr' ? 'fr-CH' : 'en-GB';
     }
 
     private static function validate(array $d): bool

@@ -4,6 +4,20 @@ return [
         'name' => 'MMEX Web',
     ],
 
+    'common' => [
+        'back'           => 'Back',
+        'edit'           => 'Edit',
+        'delete'         => 'Delete',
+        'cancel'         => 'Cancel',
+        'confirm_delete' => 'Delete this transaction?',
+        'all_m'          => 'All',
+        'all_f'          => 'All',
+        'frequent_m'     => 'Frequent',
+        'frequent_f'     => 'Frequent',
+        'validate'       => 'Apply',
+        'copy'           => 'Copy',
+    ],
+
     'nav' => [
         'new'      => 'Entry',
         'queue'    => 'Queue',
@@ -25,6 +39,13 @@ return [
         'description' => 'Pick a username and password. The SQLite database was created automatically.',
         'submit'      => 'Create account',
         'error'       => 'Username required, password ≥ 4 chars.',
+        'username'    => 'Username',
+        'password'    => 'Password',
+    ],
+
+    'error404' => [
+        'title' => '404 — Page not found',
+        'text'  => 'This route does not exist.',
     ],
 
     'tx' => [
@@ -58,6 +79,28 @@ return [
         'toaccount_required'=> 'Destination account required',
         'queued'            => 'Transaction queued ✓',
         'updated'           => 'Transaction updated ✓',
+        'source_account'    => 'Source account',
+        'dest_account'      => 'Destination account',
+        'search_account'    => 'Search or create an account…',
+        'search_or_create'  => 'Search or create…',
+        'new_category_section' => 'New category',
+        'parent_placeholder'=> 'Parent category (e.g. Food)',
+        'sub_placeholder'   => 'Subcategory (optional, e.g. Groceries)',
+        'create_and_select' => '＋ Create and select',
+        'notes_placeholder' => 'Details, ticket #…',
+        'payee_created'     => 'Payee created',
+        'account_created'   => 'Account created',
+        'category_created'  => 'Category created',
+        'error_prefix'      => 'Error: ',
+        'error_unknown'     => 'unknown',
+        'nothing_to_reuse'  => 'Nothing to reuse',
+        'last_tx_reused'    => 'Last tx reused',
+        'save_error'        => 'Save error',
+        'network_down'      => 'Network unavailable',
+        'choose'            => 'Select…',
+        'optional'          => 'Optional',
+        'add'               => 'Add…',
+        'amount'            => 'Amount',
     ],
 
     'queue' => [
@@ -71,6 +114,9 @@ return [
         'empty_title'   => 'Queue empty',
         'empty_text'    => 'All transactions have been pulled by the desktop.',
         'empty_cta'     => '＋ New transaction',
+        'internal_transfer' => 'Internal transfer',
+        'tx_abbrev'     => 'tx',
+        'confirm_delete'=> 'Delete this transaction?',
     ],
 
     'settings' => [
@@ -162,5 +208,23 @@ return [
         'submit'       => 'Create my account',
         'expired_title'=> 'Invalid or expired link',
         'expired_help' => 'Ask the administrator for a new link.',
+    ],
+
+    'about' => [
+        'section'           => 'About',
+        'version_line'      => 'MMEX Web',
+        'license'           => 'Released under GPL-2.0, same as Money Manager EX.',
+        'credits_webapp'    => 'Derived from the original MMEX WebApp — © Money Manager EX team.',
+        'credits_webapp_repo' => 'Upstream repository',
+        'credits_mmex'      => 'Syncs with the Money Manager EX desktop.',
+        'credits_mmex_team' => 'Desktop repository',
+        'credits_fork'      => 'UI 2.0 fork © 2026 Gabriele Fusco',
+        'tip_jar'           => 'Donate via PayPal',
+        'donation_help'     => 'The app stays free and open-source. If you find it useful, a small donation is always welcome — but it is entirely up to you, no feature is locked.',
+        'donation_button'   => 'Donate via PayPal',
+        'donation_hide'     => 'Hide this button',
+        'donation_hide_confirm' => 'Thanks for your support! 💛',
+        'donation_hidden_notice' => 'The donation button is hidden.',
+        'donation_show'     => 'Show the donation button again',
     ],
 ];

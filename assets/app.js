@@ -1,8 +1,11 @@
 // MMEX Web — saisie step-by-step mobile-first
-// Données travaillent par NOM (schéma SQLite original).
+// Travaille par NOM (schéma SQLite original) et i18n via boot.strings / boot.locale.
 
 window.txForm = function () {
   const boot = window.MMEX_BOOT || {};
+  const S = boot.strings || {};
+  const L = boot.locale  || 'fr-CH';
+
   return {
     boot,
     accounts:   boot.accounts   || [],
@@ -15,9 +18,9 @@ window.txForm = function () {
     },
 
     typeMeta: {
-      Withdrawal: { label: 'Dépense',   sign: '−', color: 'text-rose-600',    chip: 'bg-rose-600' },
-      Deposit:    { label: 'Revenu',    sign: '+', color: 'text-emerald-600', chip: 'bg-emerald-600' },
-      Transfer:   { label: 'Transfert', sign: '→', color: 'text-sky-600',     chip: 'bg-sky-600' },
+      Withdrawal: { label: S.withdrawal || 'Dépense',   sign: '−', color: 'text-rose-600',    chip: 'bg-rose-600' },
+      Deposit:    { label: S.deposit    || 'Revenu',    sign: '+', color: 'text-emerald-600', chip: 'bg-emerald-600' },
+      Transfer:   { label: S.transfer   || 'Transfert', sign: '→', color: 'text-sky-600',     chip: 'bg-sky-600' },
     },
 
     // État du formulaire
@@ -26,8 +29,8 @@ window.txForm = function () {
     date: new Date().toISOString().slice(0, 10),
     account: '',
     toAccount: '',
-    category: null,    // {Category, SubCategory} ou null
-    payee: null,       // {PayeeName, DefCateg, DefSubCateg} ou null
+    category: null,
+    payee: null,
     notes: '',
     edit: null,
 
@@ -63,9 +66,6 @@ window.txForm = function () {
 
     // ========== WIZARD ==========
     stepCount() {
-      // Transfer : Montant → Date+Compte(s) → Notes+Recap = 3
-      // Withdrawal/Deposit : Montant → Date+Compte → Payee+Cat → Notes+Recap = 4
-      // Si payee ET catégorie sont tous deux désactivés, on saute l'étape 3.
       if (this.type === 'Transfer') return 3;
       if (this.boot.disablePayee && this.boot.disableCategory) return 3;
       return 4;
@@ -77,24 +77,16 @@ window.txForm = function () {
     goBack() {
       if (this.sheet) { this.closeSheet(); return; }
       if (this.step > 1) { this.step--; return; }
-      // Étape 1 : retour à la file
       location.href = (this.boot.baseUrl || '') + '/queue';
     },
     canGoNext() {
       switch (this.step) {
-        case 1:
-          return Number(this.amountRaw) > 0;
+        case 1: return Number(this.amountRaw) > 0;
         case 2:
           if (!this.account) return false;
           if (this.type === 'Transfer' && !this.toAccount) return false;
           return true;
-        case 3:
-          // Pour Withdrawal/Deposit on laisse passer même sans cat/payee — champs optionnels
-          return true;
-        case 4:
-          return true;
-        default:
-          return true;
+        default: return true;
       }
     },
 
@@ -102,7 +94,6 @@ window.txForm = function () {
       this.type = t;
       if (t === 'Transfer') { this.category = null; this.payee = null; }
       if (t !== 'Transfer') { this.toAccount = ''; }
-      // On reste au step 1, la barre se recalcule automatiquement
     },
     activeTypeClasses() {
       return {
@@ -131,15 +122,17 @@ window.txForm = function () {
       this.amountRaw += k;
     },
     amountDisplay() {
-      if (!this.amountRaw) return '0,00';
+      if (!this.amountRaw) return Number(0).toLocaleString(L, { minimumFractionDigits: 2 });
       const [int, dec] = this.amountRaw.split('.');
-      const intFmt = Number(int || '0').toLocaleString('fr-CH');
+      const intFmt = Number(int || '0').toLocaleString(L);
       if (dec === undefined) return intFmt;
-      return intFmt + ',' + dec.padEnd(2, '0').slice(0, 2);
+      // Sépare les décimales avec le séparateur de la locale
+      const decSep = Number(1.1).toLocaleString(L).charAt(1) || ',';
+      return intFmt + decSep + dec.padEnd(2, '0').slice(0, 2);
     },
     pasteQuick() {
       const last = localStorage.getItem('mmex_last');
-      if (!last) { this.toast('Rien à reprendre'); return; }
+      if (!last) { this.toast(S.nothing_to_reuse || 'Rien à reprendre'); return; }
       try {
         const d = JSON.parse(last);
         this.type = d.type || this.type;
@@ -149,7 +142,7 @@ window.txForm = function () {
           const p = this.payees.find(x => x.PayeeName === d.payee);
           this.payee = p || { PayeeName: d.payee };
         }
-        this.toast('Dernière tx reprise');
+        this.toast(S.last_tx_reused || 'Dernière tx reprise');
       } catch { /* noop */ }
     },
 
@@ -163,9 +156,9 @@ window.txForm = function () {
       const today = new Date().toISOString().slice(0, 10);
       const y = new Date(); y.setDate(y.getDate() - 1);
       const yd = y.toISOString().slice(0, 10);
-      if (this.date === today) return "Aujourd'hui";
-      if (this.date === yd)    return 'Hier';
-      return new Date(this.date).toLocaleDateString('fr-CH', { weekday: 'long', day: '2-digit', month: 'long' });
+      if (this.date === today) return S.today || "Aujourd'hui";
+      if (this.date === yd)    return S.yesterday || 'Hier';
+      return new Date(this.date).toLocaleDateString(L, { weekday: 'long', day: '2-digit', month: 'long' });
     },
 
     // ========== SHEETS ==========
@@ -212,9 +205,6 @@ window.txForm = function () {
     clearCategory() { this.category = null; },
     pickPayee(p) {
       this.payee = p;
-      // Auto-fill catégorie/sous-catégorie depuis les valeurs par défaut du payee
-      // (comme l'ancienne webapp). On écrase même si une catégorie était déjà choisie,
-      // car c'est le choix du payee qui fait foi.
       if (p.DefCateg) {
         const sub = p.DefSubCateg && p.DefSubCateg !== 'None' ? p.DefSubCateg : '';
         this.category = { Category: p.DefCateg, SubCategory: sub };
@@ -242,9 +232,9 @@ window.txForm = function () {
         this.payees.push(p);
         this.payee = p;
         this.closeSheet();
-        this.toast('Bénéficiaire créé');
+        this.toast(S.payee_created || 'Bénéficiaire créé');
       } else {
-        this.toast('Erreur : ' + (json.error || 'inconnue'));
+        this.toast((S.error_prefix || 'Erreur : ') + (json.error || (S.error_unknown || 'inconnue')));
       }
     },
 
@@ -259,11 +249,11 @@ window.txForm = function () {
       const json = await res.json();
       if (json.ok) {
         this.accounts.push(json.name);
-        this.accounts.sort((a, b) => a.localeCompare(b, 'fr'));
+        this.accounts.sort((a, b) => a.localeCompare(b, L));
         this.pickAccount(field, json.name);
-        this.toast('Compte créé');
+        this.toast(S.account_created || 'Compte créé');
       } else {
-        this.toast('Erreur : ' + (json.error || 'inconnue'));
+        this.toast((S.error_prefix || 'Erreur : ') + (json.error || (S.error_unknown || 'inconnue')));
       }
     },
 
@@ -271,11 +261,7 @@ window.txForm = function () {
       const cat = (this.newCat.category || '').trim();
       const sub = (this.newCat.subcategory || '').trim();
       if (!cat) return;
-      const body = new URLSearchParams({
-        _csrf: this.boot.csrf,
-        category: cat,
-        subcategory: sub,
-      });
+      const body = new URLSearchParams({ _csrf: this.boot.csrf, category: cat, subcategory: sub });
       const res = await fetch((this.boot.baseUrl || '') + '/api/categories', {
         method: 'POST',
         headers: { 'X-Requested-With': 'XMLHttpRequest', 'Content-Type': 'application/x-www-form-urlencoded' },
@@ -283,29 +269,26 @@ window.txForm = function () {
       });
       const json = await res.json();
       if (json.ok) {
-        // Ajoute à la liste locale (ligne parent 'None' + la sous-catégorie si fournie)
         if (!this.categories.some(c => c.CategoryName.toLowerCase() === cat.toLowerCase() && (c.SubCategoryName || '') === 'None')) {
           this.categories.push({ CategoryName: cat, SubCategoryName: 'None' });
         }
-        if (sub) {
-          this.categories.push({ CategoryName: cat, SubCategoryName: sub });
-        }
+        if (sub) this.categories.push({ CategoryName: cat, SubCategoryName: sub });
         this.categories.sort((a, b) =>
-          a.CategoryName.localeCompare(b.CategoryName, 'fr') ||
-          (a.SubCategoryName || '').localeCompare(b.SubCategoryName || '', 'fr')
+          a.CategoryName.localeCompare(b.CategoryName, L) ||
+          (a.SubCategoryName || '').localeCompare(b.SubCategoryName || '', L)
         );
         this.pickCategory(cat, sub);
-        this.toast('Catégorie créée');
+        this.toast(S.category_created || 'Catégorie créée');
       } else {
-        this.toast('Erreur : ' + (json.error || 'inconnue'));
+        this.toast((S.error_prefix || 'Erreur : ') + (json.error || (S.error_unknown || 'inconnue')));
       }
     },
 
     // ========== SAVE ==========
     async save() {
-      if (Number(this.amountRaw) <= 0) { this.toast('Montant requis'); this.step = 1; return; }
-      if (!this.account) { this.toast('Compte requis'); this.step = 2; return; }
-      if (this.type === 'Transfer' && !this.toAccount) { this.toast('Compte destination requis'); this.step = 2; return; }
+      if (Number(this.amountRaw) <= 0) { this.toast(S.amount_required || 'Montant requis'); this.step = 1; return; }
+      if (!this.account) { this.toast(S.account_required || 'Compte requis'); this.step = 2; return; }
+      if (this.type === 'Transfer' && !this.toAccount) { this.toast(S.toaccount_required || 'Compte destination requis'); this.step = 2; return; }
 
       this.saving = true;
       const body = new URLSearchParams({
@@ -320,7 +303,7 @@ window.txForm = function () {
         subcategory: this.category?.SubCategory || '',
         payee: this.payee?.PayeeName || '',
         notes: this.notes || '',
-        status: this.boot.defaultStatus || 'F',
+        status: this.boot.defaultStatus || 'N',
       });
 
       try {
@@ -342,11 +325,10 @@ window.txForm = function () {
             subcategory: this.category?.SubCategory,
             payee: this.payee?.PayeeName,
           }));
-          this.toast(this.edit ? 'Transaction mise à jour ✓' : 'Transaction en file ✓');
+          this.toast(this.edit ? (S.updated || 'Transaction mise à jour ✓') : (S.queued || 'Transaction en file ✓'));
           if (this.edit) {
             setTimeout(() => { location.href = (this.boot.baseUrl || '') + '/queue'; }, 600);
           } else {
-            // Reset pour saisie suivante : on garde le type, le compte par défaut
             setTimeout(() => {
               this.amountRaw = '0';
               this.notes = '';
@@ -356,10 +338,10 @@ window.txForm = function () {
             }, 500);
           }
         } else {
-          this.toast('Erreur de sauvegarde');
+          this.toast(S.save_error || 'Erreur de sauvegarde');
         }
       } catch (e) {
-        this.toast('Réseau indisponible');
+        this.toast(S.network_down || 'Réseau indisponible');
       } finally {
         this.saving = false;
       }

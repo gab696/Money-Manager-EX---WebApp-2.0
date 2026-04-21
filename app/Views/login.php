@@ -7,7 +7,8 @@
   <meta name="theme-color" content="#4f46e5">
   <title>Connexion — MMEX Web</title>
   <script src="https://cdn.tailwindcss.com"></script>
-  <link rel="stylesheet" href="<?= $e($baseUrl) ?>/assets/style.css">
+  <link rel="stylesheet" href="<?= $e($asset('/assets/style.css')) ?>">
+  <?php include __DIR__ . '/layout/pwa_head.php'; ?>
 </head>
 <body class="min-h-dvh bg-gradient-to-b from-indigo-600 to-indigo-800 text-slate-900 antialiased">
 

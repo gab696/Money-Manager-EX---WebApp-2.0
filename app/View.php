@@ -16,8 +16,10 @@ final class View
         $data['csrf']    = Csrf::token();
         $data['baseUrl'] = Config::baseUrl();
         $data['locale']  = I18n::locale();
+        $data['assetVer'] = Db::APP_VERSION;
         $data['e']  = fn($s) => htmlspecialchars((string) ($s ?? ''), ENT_QUOTES, 'UTF-8');
         $data['url'] = fn($p) => Config::url($p);
+        $data['asset'] = fn($p) => Config::url($p) . '?v=' . Db::APP_VERSION;
         $data['t']  = fn($k, $d = '') => I18n::t($k, $d);
 
         extract($data, EXTR_SKIP);

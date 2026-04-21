@@ -26,6 +26,7 @@ final class SettingsController
             'username'     => Auth::username(),
             'userId'       => Auth::id(),
             'isAdmin'      => $isAdmin,
+            'donorHidden'  => User::isDonorHidden((int) Auth::id()),
             'users'        => $isAdmin ? User::all() : [],
             'invitations'  => $isAdmin ? Invitation::recent() : [],
             'params'       => Parameter::all(),
@@ -131,6 +132,16 @@ final class SettingsController
         }
 
         header('Location: ' . Config::url('/settings?prefs=ok'));
+    }
+
+    // Toggle personnel : cacher/afficher le bouton de don pour l'utilisateur courant.
+    public function toggleDonation(): void
+    {
+        Auth::requireLogin();
+        Csrf::assertPost();
+        $action = $_POST['action'] ?? '';
+        User::setDonorHidden((int) Auth::id(), $action === 'hide');
+        header('Location: ' . Config::url('/settings?donation=' . $action));
     }
 
     // ========== Invitations (admin uniquement) ==========

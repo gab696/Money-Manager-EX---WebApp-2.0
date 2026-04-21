@@ -4,6 +4,20 @@ return [
         'name' => 'MMEX Web',
     ],
 
+    'common' => [
+        'back'           => 'Retour',
+        'edit'           => 'Modifier',
+        'delete'         => 'Supprimer',
+        'cancel'         => 'Annuler',
+        'confirm_delete' => 'Supprimer cette transaction ?',
+        'all_m'          => 'Tous',
+        'all_f'          => 'Toutes',
+        'frequent_m'     => 'Fréquents',
+        'frequent_f'     => 'Fréquentes',
+        'validate'       => 'Valider',
+        'copy'           => 'Copier',
+    ],
+
     'nav' => [
         'new'      => 'Saisie',
         'queue'    => 'File',
@@ -25,6 +39,13 @@ return [
         'description' => 'Choisis un identifiant et un mot de passe. La base SQLite a été créée automatiquement.',
         'submit'      => 'Créer le compte',
         'error'       => 'Identifiant requis, mot de passe ≥ 4 caractères.',
+        'username'    => 'Utilisateur',
+        'password'    => 'Mot de passe',
+    ],
+
+    'error404' => [
+        'title' => '404 — Page introuvable',
+        'text'  => "Cette route n'existe pas.",
     ],
 
     'tx' => [
@@ -58,6 +79,28 @@ return [
         'toaccount_required'=> 'Compte destination requis',
         'queued'            => 'Transaction en file ✓',
         'updated'           => 'Transaction mise à jour ✓',
+        'source_account'    => 'Compte source',
+        'dest_account'      => 'Compte destination',
+        'search_account'    => 'Rechercher ou créer un compte…',
+        'search_or_create'  => 'Rechercher ou créer…',
+        'new_category_section' => 'Nouvelle catégorie',
+        'parent_placeholder'=> 'Catégorie parent (ex. Alimentation)',
+        'sub_placeholder'   => 'Sous-catégorie (facultatif, ex. Courses)',
+        'create_and_select' => '＋ Créer et sélectionner',
+        'notes_placeholder' => 'Précisions, numéro de ticket…',
+        'payee_created'     => 'Bénéficiaire créé',
+        'account_created'   => 'Compte créé',
+        'category_created'  => 'Catégorie créée',
+        'error_prefix'      => 'Erreur : ',
+        'error_unknown'     => 'inconnue',
+        'nothing_to_reuse'  => 'Rien à reprendre',
+        'last_tx_reused'    => 'Dernière tx reprise',
+        'save_error'        => 'Erreur de sauvegarde',
+        'network_down'      => 'Réseau indisponible',
+        'choose'            => 'Choisir…',
+        'optional'          => 'Facultatif',
+        'add'               => 'Ajouter…',
+        'amount'            => 'Montant',
     ],
 
     'queue' => [
@@ -71,6 +114,9 @@ return [
         'empty_title'   => 'File vide',
         'empty_text'    => 'Toutes les transactions ont été aspirées par le desktop.',
         'empty_cta'     => '＋ Nouvelle transaction',
+        'internal_transfer' => 'Transfert interne',
+        'tx_abbrev'     => 'tx',
+        'confirm_delete'=> 'Supprimer cette transaction ?',
     ],
 
     'settings' => [
@@ -164,5 +210,23 @@ return [
         'submit'       => 'Créer mon compte',
         'expired_title'=> 'Lien invalide ou expiré',
         'expired_help' => "Demande un nouveau lien à l'administrateur.",
+    ],
+
+    'about' => [
+        'section'           => 'À propos',
+        'version_line'      => 'MMEX Web',
+        'license'           => 'Sous licence GPL-2.0, comme Money Manager EX.',
+        'credits_webapp'    => 'Dérivé du webapp MMEX original — © équipe Money Manager EX.',
+        'credits_webapp_repo' => 'Dépôt d\'origine',
+        'credits_mmex'      => 'Synchronisation avec Money Manager EX desktop.',
+        'credits_mmex_team' => 'Dépôt desktop',
+        'credits_fork'      => 'Fork UI 2.0 © 2026 Gabriele Fusco',
+        'tip_jar'           => 'Faire un don via PayPal',
+        'donation_help'     => "L'application reste gratuite et libre. Si elle te rend service, un petit don est toujours apprécié. Mais c'est à ton entière appréciation — aucune fonctionnalité n'est bloquée.",
+        'donation_button'   => 'Faire un don (PayPal)',
+        'donation_hide'     => "Masquer ce bouton",
+        'donation_hide_confirm' => 'Merci de ton soutien ! 💛',
+        'donation_hidden_notice' => "Le bouton de don est masqué.",
+        'donation_show'     => 'Réafficher le bouton de don',
     ],
 ];

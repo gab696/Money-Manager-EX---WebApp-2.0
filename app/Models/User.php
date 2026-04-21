@@ -17,7 +17,7 @@ final class User
 {
     public static function all(): array
     {
-        return Db::all('SELECT id, username, created_at, active, is_admin FROM Users ORDER BY is_admin DESC, username COLLATE NOCASE');
+        return Db::all('SELECT id, username, created_at, active, is_admin, donor_hidden FROM Users ORDER BY is_admin DESC, username COLLATE NOCASE');
     }
 
     public static function activeUsers(): array
@@ -27,12 +27,23 @@ final class User
 
     public static function find(int $id): ?array
     {
-        return Db::one('SELECT id, username, password_hash, active, is_admin FROM Users WHERE id = ?', [$id]);
+        return Db::one('SELECT id, username, password_hash, active, is_admin, donor_hidden FROM Users WHERE id = ?', [$id]);
     }
 
     public static function findByUsername(string $username): ?array
     {
-        return Db::one('SELECT id, username, password_hash, active, is_admin FROM Users WHERE username = ? COLLATE NOCASE', [$username]);
+        return Db::one('SELECT id, username, password_hash, active, is_admin, donor_hidden FROM Users WHERE username = ? COLLATE NOCASE', [$username]);
+    }
+
+    public static function setDonorHidden(int $id, bool $hidden): void
+    {
+        Db::query('UPDATE Users SET donor_hidden = ? WHERE id = ?', [$hidden ? 1 : 0, $id]);
+    }
+
+    public static function isDonorHidden(int $id): bool
+    {
+        $u = self::find($id);
+        return $u !== null && (int) $u['donor_hidden'] === 1;
     }
 
     public static function create(string $username, string $password, bool $isAdmin = false): int

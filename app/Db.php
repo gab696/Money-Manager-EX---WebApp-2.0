@@ -15,8 +15,19 @@ use PDO;
 final class Db
 {
     private static ?PDO $pdo = null;
-    public const APP_VERSION = '2.0.0';
+    public const APP_VERSION = '2.0.8';
     public const API_VERSION = '1.0.1'; // version attendue par le desktop MMEX
+
+    /**
+     * URL PayPal du projet — soutient le développement du fork UI 2.0 par Gabriele Fusco.
+     *
+     * IMPORTANT pour les forks et self-hosters : par convention open-source, la destination
+     * du don reste celle de l'auteur amont. Merci de ne pas modifier cette constante dans
+     * une redistribution publique ou un hébergement servant des tiers. Un utilisateur final
+     * qui souhaite simplement ne pas voir le bouton peut passer par "Masquer ce bouton"
+     * (s'il est disponible) ou ignorer la CTA — elle est non bloquante.
+     */
+    public const PAYPAL_URL = 'https://www.paypal.com/donate/?hosted_button_id=WUVWMM6WRPX42';
 
     public static function pdo(): PDO
     {
@@ -114,13 +125,13 @@ final class Db
             used_by     INTEGER NULL
         )");
 
-        // Migration : si Users n'a pas la colonne is_admin (base créée avant upgrade), on l'ajoute.
-        $hasIsAdmin = false;
-        foreach ($pdo->query("PRAGMA table_info(Users)")->fetchAll() as $col) {
-            if ($col['name'] === 'is_admin') { $hasIsAdmin = true; break; }
-        }
-        if (!$hasIsAdmin) {
+        // Migrations Users : colonnes ajoutées au fil des versions
+        $cols = array_column($pdo->query("PRAGMA table_info(Users)")->fetchAll(), 'name');
+        if (!in_array('is_admin', $cols, true)) {
             $pdo->exec("ALTER TABLE Users ADD COLUMN is_admin INTEGER NOT NULL DEFAULT 0");
+        }
+        if (!in_array('donor_hidden', $cols, true)) {
+            $pdo->exec("ALTER TABLE Users ADD COLUMN donor_hidden INTEGER NOT NULL DEFAULT 0");
         }
 
         // Migration : si la table Users est vide et qu'un user existe en Parameters

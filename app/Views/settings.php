@@ -7,6 +7,7 @@
 /** @var ?string $username */
 /** @var ?int $userId */
 /** @var bool $isAdmin */
+/** @var bool $donorHidden */
 /** @var array $users */
 /** @var array $invitations */
 /** @var array $params */
@@ -42,7 +43,8 @@ $statuses = ['N', 'R', 'F', 'D', 'V'];
   <title><?= $e($t('settings.title')) ?> — MMEX Web</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <script defer src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js"></script>
-  <link rel="stylesheet" href="<?= $e($baseUrl) ?>/assets/style.css">
+  <link rel="stylesheet" href="<?= $e($asset('/assets/style.css')) ?>">
+  <?php include __DIR__ . '/layout/pwa_head.php'; ?>
 </head>
 <body class="min-h-dvh bg-slate-50 text-slate-900 antialiased">
 
@@ -417,12 +419,60 @@ $statuses = ['N', 'R', 'F', 'D', 'V'];
       </details>
     </section>
 
+    <!-- À propos + Don -->
+    <?php $paypalUrl = \App\Db::PAYPAL_URL; ?>
+    <section>
+      <h2 class="px-1 mb-2 text-[11px] uppercase tracking-wider text-slate-400"><?= $e($t('about.section')) ?></h2>
+      <div class="bg-white rounded-2xl border border-slate-200 overflow-hidden">
+
+        <!-- Crédits (toujours visible) -->
+        <div class="px-4 py-3 space-y-1.5 text-xs text-slate-600">
+          <div class="flex items-center justify-between">
+            <span class="font-medium text-slate-900"><?= $e($t('about.version_line')) ?> v<?= $e(\App\Db::APP_VERSION) ?></span>
+            <span class="text-[10px] text-slate-400">API <?= $e(\App\Db::API_VERSION) ?> · PHP <?= PHP_VERSION ?></span>
+          </div>
+          <div class="leading-relaxed">
+            <?= $e($t('about.credits_fork')) ?> —
+            <a href="https://github.com/gab696/Money-Manager-EX---WebApp-2.0" target="_blank" rel="noopener"
+               class="text-indigo-600 hover:underline">github.com/gab696/Money-Manager-EX---WebApp-2.0</a>
+          </div>
+          <div class="leading-relaxed">
+            <?= $e($t('about.credits_webapp')) ?>
+            <a href="https://github.com/moneymanagerex/web-money-manager-ex" target="_blank" rel="noopener"
+               class="text-indigo-600 hover:underline">
+              <?= $e($t('about.credits_webapp_repo')) ?>
+            </a>.
+          </div>
+          <div class="leading-relaxed">
+            <?= $e($t('about.credits_mmex')) ?>
+            <a href="https://github.com/moneymanagerex/moneymanagerex" target="_blank" rel="noopener"
+               class="text-indigo-600 hover:underline">
+              <?= $e($t('about.credits_mmex_team')) ?>
+            </a>.
+          </div>
+          <div class="text-[11px] text-slate-400 pt-1"><?= $e($t('about.license')) ?></div>
+        </div>
+
+        <?php if ($paypalUrl !== ''): ?>
+          <!-- Bouton don (toujours visible en settings) -->
+          <div class="px-4 py-4 border-t border-slate-100 bg-gradient-to-br from-amber-50/60 to-white">
+            <p class="text-[11px] text-slate-500 mb-3 leading-relaxed"><?= $e($t('about.donation_help')) ?></p>
+            <a href="<?= $e($paypalUrl) ?>" target="_blank" rel="noopener"
+               class="w-full h-11 rounded-xl bg-[#0070ba] hover:bg-[#003087] text-white font-semibold text-sm flex items-center justify-center gap-2 transition">
+              <svg class="h-4 w-4" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M7.076 21.337H2.47a.5.5 0 0 1-.494-.577L4.806 2.85A.5.5 0 0 1 5.3 2.337h8.7c2.55 0 4.48 1.22 5.24 3.35.52 1.47.33 2.8-.28 4.01-.84 1.68-2.57 2.78-4.76 2.95-.37.03-.77.05-1.18.05H10.3c-.49 0-.9.35-.97.83l-.74 4.7-.28 1.81c-.07.41-.4.71-.82.71H7.08l-.004.59z"/></svg>
+              <?= $e($t('about.donation_button')) ?>
+            </a>
+          </div>
+        <?php endif; ?>
+
+      </div>
+    </section>
+
     <section class="space-y-2">
       <form method="post" action="<?= $e($baseUrl) ?>/logout">
         <input type="hidden" name="_csrf" value="<?= $e($csrf) ?>">
         <button type="submit" class="w-full h-12 rounded-xl bg-white border border-slate-200 text-rose-600 font-medium hover:bg-rose-50"><?= $e($t('settings.logout')) ?></button>
       </form>
-      <div class="text-center text-[11px] text-slate-400 pt-2">MMEX Web v<?= \App\Db::APP_VERSION ?> · API <?= \App\Db::API_VERSION ?> · PHP <?= PHP_VERSION ?></div>
     </section>
   </div>
 </div>

@@ -61,6 +61,7 @@ $router->post('/settings/users/{id}/delete',   [SettingsController::class, 'dele
 $router->post('/settings/users/{id}/password', [SettingsController::class, 'resetUserPassword']);
 $router->post('/settings/invitations',         [SettingsController::class, 'createInvitation']);
 $router->post('/settings/invitations/{id}/revoke', [SettingsController::class, 'revokeInvitation']);
+$router->post('/settings/donation',            [SettingsController::class, 'toggleDonation']);
 
 // Invitations publiques (token dans l'URL)
 $router->get ('/invite/{token}', [AuthController::class, 'showInvite']);

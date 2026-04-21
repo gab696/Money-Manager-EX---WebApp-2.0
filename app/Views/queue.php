@@ -1,36 +1,46 @@
 <?php
 /** @var callable $e */
+/** @var callable $t */
 /** @var string $baseUrl */
 /** @var string $csrf */
-/** @var array $pending */     // lignes New_Transaction brutes
-/** @var array $totals */      // ['Withdrawal'=>x, 'Deposit'=>y, 'Transfer'=>z, 'count'=>n]
+/** @var string $locale */
+/** @var array $pending */
+/** @var array $totals */
 /** @var ?string $lastSyncAt */
 
 $active = 'queue';
 $pendingCount = (int) ($totals['count'] ?? 0);
+$intlLocale = $locale === 'fr' ? 'fr_CH' : 'en_GB';
 
 if (!function_exists('mmex_fmt_amount')) {
     function mmex_fmt_amount(float $n): string {
         return number_format($n, 2, ',', "\u{202F}");
     }
 }
-if (!function_exists('mmex_day_label')) {
-    function mmex_day_label(string $iso): string {
-        $today = date('Y-m-d');
-        $yday  = date('Y-m-d', strtotime('-1 day'));
-        if ($iso === $today) return "Aujourd'hui";
-        if ($iso === $yday)  return 'Hier';
-        $ts = strtotime($iso);
-        static $days = ['Dim.','Lun.','Mar.','Mer.','Jeu.','Ven.','Sam.'];
-        static $months = ['janv.','févr.','mars','avr.','mai','juin','juil.','août','sept.','oct.','nov.','déc.'];
-        return $days[(int) date('w', $ts)] . ' ' . date('j', $ts) . ' ' . $months[(int) date('n', $ts) - 1];
+
+$mmexDayLabel = function (string $iso) use ($t, $intlLocale, $locale): string {
+    $today = date('Y-m-d');
+    $yday  = date('Y-m-d', strtotime('-1 day'));
+    if ($iso === $today) return $t('tx.today');
+    if ($iso === $yday)  return $t('tx.yesterday');
+    $ts = strtotime($iso);
+    if (class_exists('IntlDateFormatter')) {
+        $fmt = \IntlDateFormatter::create($intlLocale, \IntlDateFormatter::FULL, \IntlDateFormatter::NONE);
+        if ($fmt) return $fmt->format($ts);
     }
-}
+    // Fallback : formats courts
+    if ($locale === 'en') {
+        return date('D j M', $ts);
+    }
+    static $days   = ['Dim.','Lun.','Mar.','Mer.','Jeu.','Ven.','Sam.'];
+    static $months = ['janv.','févr.','mars','avr.','mai','juin','juil.','août','sept.','oct.','nov.','déc.'];
+    return $days[(int) date('w', $ts)] . ' ' . date('j', $ts) . ' ' . $months[(int) date('n', $ts) - 1];
+};
 
 $typeMeta = [
-    'Withdrawal' => ['label' => 'Dépense',   'sign' => '−', 'color' => 'text-rose-600',    'bg' => 'bg-rose-50 text-rose-600',       'icon' => '💳'],
-    'Deposit'    => ['label' => 'Revenu',    'sign' => '+', 'color' => 'text-emerald-600', 'bg' => 'bg-emerald-50 text-emerald-600', 'icon' => '💰'],
-    'Transfer'   => ['label' => 'Transfert', 'sign' => '→', 'color' => 'text-sky-600',     'bg' => 'bg-sky-50 text-sky-600',         'icon' => '🔁'],
+    'Withdrawal' => ['label' => $t('tx.withdrawal'), 'sign' => '−', 'color' => 'text-rose-600',    'bg' => 'bg-rose-50 text-rose-600',       'icon' => '💳'],
+    'Deposit'    => ['label' => $t('tx.deposit'),    'sign' => '+', 'color' => 'text-emerald-600', 'bg' => 'bg-emerald-50 text-emerald-600', 'icon' => '💰'],
+    'Transfer'   => ['label' => $t('tx.transfer'),   'sign' => '→', 'color' => 'text-sky-600',     'bg' => 'bg-sky-50 text-sky-600',         'icon' => '🔁'],
 ];
 
 $groups = [];
@@ -38,15 +48,16 @@ foreach ($pending as $tx) $groups[$tx['Date']][] = $tx;
 krsort($groups);
 ?>
 <!doctype html>
-<html lang="fr">
+<html lang="<?= $e($locale) ?>">
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
   <meta name="theme-color" content="#4f46e5">
-  <title>File d'attente — MMEX Web</title>
+  <title><?= $e($t('queue.title')) ?> — MMEX Web</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <script defer src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js"></script>
-  <link rel="stylesheet" href="<?= $e($baseUrl) ?>/assets/style.css">
+  <link rel="stylesheet" href="<?= $e($asset('/assets/style.css')) ?>">
+  <?php include __DIR__ . '/layout/pwa_head.php'; ?>
 </head>
 <body class="min-h-dvh bg-slate-50 text-slate-900 antialiased">
 
@@ -54,37 +65,35 @@ krsort($groups);
 
   <header class="sticky top-0 z-20 bg-slate-50/95 backdrop-blur border-b border-slate-200">
     <div class="flex items-center justify-between h-14 px-4">
-      <a href="<?= $e($baseUrl) ?>/new" class="p-2 -ml-2 text-slate-600" aria-label="Retour">
+      <a href="<?= $e($baseUrl) ?>/new" class="p-2 -ml-2 text-slate-600" aria-label="<?= $e($t('common.back')) ?>">
         <svg class="h-6 w-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M15 19l-7-7 7-7"/></svg>
       </a>
-      <h1 class="text-base font-semibold">En attente de sync</h1>
+      <h1 class="text-base font-semibold"><?= $e($t('queue.title')) ?></h1>
       <div class="w-6"></div>
     </div>
     <div class="px-4 pb-3">
       <div class="flex items-center gap-2 text-xs text-slate-500">
         <svg class="h-4 w-4 text-emerald-500" viewBox="0 0 24 24" fill="currentColor"><circle cx="12" cy="12" r="4"/></svg>
-        <span>Dernière aspiration desktop :
-          <span class="font-medium text-slate-700"><?= $lastSyncAt ? $e(date('d M, H:i', strtotime($lastSyncAt))) : 'jamais' ?></span>
+        <span><?= $e($t('queue.last_sync')) ?>
+          <span class="font-medium text-slate-700"><?= $lastSyncAt ? $e(date('d M, H:i', strtotime($lastSyncAt))) : $e($t('queue.never')) ?></span>
         </span>
       </div>
-      <div class="mt-1 text-[11px] text-slate-400">
-        Ces transactions seront récupérées au prochain <em>Tools → Refresh WebApp</em> du desktop.
-      </div>
+      <div class="mt-1 text-[11px] text-slate-400"><?= $e($t('queue.explanation')) ?></div>
     </div>
   </header>
 
   <section class="px-4 pt-4">
     <div class="grid grid-cols-3 gap-2">
       <div class="rounded-xl bg-white border border-slate-200 p-3">
-        <div class="text-[11px] uppercase tracking-wider text-slate-400">Total</div>
+        <div class="text-[11px] uppercase tracking-wider text-slate-400"><?= $e($t('queue.total')) ?></div>
         <div class="text-lg font-semibold tabular-nums"><?= (int) $totals['count'] ?></div>
       </div>
       <div class="rounded-xl bg-rose-50 border border-rose-100 p-3">
-        <div class="text-[11px] uppercase tracking-wider text-rose-500">Dépenses</div>
+        <div class="text-[11px] uppercase tracking-wider text-rose-500"><?= $e($t('queue.expenses')) ?></div>
         <div class="text-lg font-semibold tabular-nums text-rose-700"><?= $e(mmex_fmt_amount((float) $totals['Withdrawal'])) ?></div>
       </div>
       <div class="rounded-xl bg-emerald-50 border border-emerald-100 p-3">
-        <div class="text-[11px] uppercase tracking-wider text-emerald-600">Revenus</div>
+        <div class="text-[11px] uppercase tracking-wider text-emerald-600"><?= $e($t('queue.incomes')) ?></div>
         <div class="text-lg font-semibold tabular-nums text-emerald-700"><?= $e(mmex_fmt_amount((float) $totals['Deposit'])) ?></div>
       </div>
     </div>
@@ -94,16 +103,18 @@ krsort($groups);
 
     <?php if (!$pending): ?>
       <div class="text-center py-16 px-6">
-        <div class="text-5xl mb-3">✅</div>
-        <h3 class="text-lg font-semibold">File vide</h3>
-        <p class="mt-1 text-sm text-slate-500">Toutes les transactions ont été aspirées par le desktop.</p>
-        <a href="<?= $e($baseUrl) ?>/new" class="mt-6 inline-flex items-center gap-2 px-5 h-11 rounded-xl bg-indigo-600 text-white text-sm font-semibold">＋ Nouvelle transaction</a>
+        <svg class="h-16 w-16 mx-auto text-slate-300 mb-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M2.25 13.5h3.86a2.25 2.25 0 012.012 1.244l.256.512a2.25 2.25 0 002.013 1.244h3.218a2.25 2.25 0 002.013-1.244l.256-.512a2.25 2.25 0 012.013-1.244h3.859m-19.5.338V18a2.25 2.25 0 002.25 2.25h15A2.25 2.25 0 0021.75 18v-4.162c0-.224-.034-.447-.1-.661L19.24 5.338a2.25 2.25 0 00-2.15-1.588H6.911a2.25 2.25 0 00-2.15 1.588L2.35 13.177a2.25 2.25 0 00-.1.661z"/>
+        </svg>
+        <h3 class="text-lg font-semibold"><?= $e($t('queue.empty_title')) ?></h3>
+        <p class="mt-1 text-sm text-slate-500"><?= $e($t('queue.empty_text')) ?></p>
+        <a href="<?= $e($baseUrl) ?>/new" class="mt-6 inline-flex items-center gap-2 px-5 h-11 rounded-xl bg-indigo-600 text-white text-sm font-semibold"><?= $e($t('queue.empty_cta')) ?></a>
       </div>
     <?php else: foreach ($groups as $date => $items): ?>
       <div>
         <div class="flex items-center justify-between mb-2">
-          <h2 class="text-[11px] uppercase tracking-wider text-slate-400"><?= $e(mmex_day_label($date)) ?></h2>
-          <span class="text-[11px] text-slate-400"><?= count($items) ?> tx</span>
+          <h2 class="text-[11px] uppercase tracking-wider text-slate-400"><?= $e($mmexDayLabel($date)) ?></h2>
+          <span class="text-[11px] text-slate-400"><?= count($items) ?> <?= $e($t('queue.tx_abbrev')) ?></span>
         </div>
         <ul class="bg-white rounded-2xl border border-slate-200 divide-y divide-slate-100 overflow-hidden">
           <?php foreach ($items as $tx):
@@ -113,7 +124,7 @@ krsort($groups);
                 : '';
             if ($tx['Type'] === 'Transfer') {
               $primary   = $tx['Account'] . ' → ' . ($tx['ToAccount'] ?: '—');
-              $secondary = $tx['Notes'] ?: 'Transfert interne';
+              $secondary = $tx['Notes'] ?: $t('queue.internal_transfer');
             } else {
               $primary   = $tx['Payee'] ?: ($catLabel ?: '—');
               $secondary = trim(($catLabel ? $catLabel : '—') . ' · ' . $tx['Account']);
@@ -127,7 +138,7 @@ krsort($groups);
                 'color' => $meta['color'],
                 'icon' => $meta['icon'],
                 'iconBg' => $meta['bg'],
-                'date' => mmex_day_label($tx['Date']),
+                'date' => $mmexDayLabel($tx['Date']),
             ], JSON_UNESCAPED_UNICODE);
           ?>
           <li>
@@ -140,7 +151,7 @@ krsort($groups);
               </div>
               <div class="text-right">
                 <div class="text-sm font-semibold tabular-nums <?= $meta['color'] ?>"><?= $meta['sign'] ?><?= $e(mmex_fmt_amount((float) $tx['Amount'])) ?></div>
-                <div class="text-[10px] uppercase tracking-wider text-slate-400 mt-0.5"><?= $meta['label'] ?></div>
+                <div class="text-[10px] uppercase tracking-wider text-slate-400 mt-0.5"><?= $e($meta['label']) ?></div>
               </div>
             </button>
           </li>
@@ -169,14 +180,14 @@ krsort($groups);
             <div class="grid grid-cols-1 gap-2">
               <a :href="'<?= $e($baseUrl) ?>/transaction/' + actionTx.id + '/edit'"
                  class="h-12 rounded-xl bg-indigo-600 text-white font-semibold flex items-center justify-center gap-2">
-                Modifier
+                <?= $e($t('common.edit')) ?>
               </a>
               <form method="post" :action="'<?= $e($baseUrl) ?>/transaction/' + actionTx.id + '/delete'"
-                    @submit="if (!confirm('Supprimer cette transaction ?')) $event.preventDefault();">
+                    @submit="if (!confirm('<?= $e($t('queue.confirm_delete')) ?>')) $event.preventDefault();">
                 <input type="hidden" name="_csrf" value="<?= $e($csrf) ?>">
-                <button type="submit" class="w-full h-12 rounded-xl bg-rose-50 text-rose-700 font-medium hover:bg-rose-100">Supprimer</button>
+                <button type="submit" class="w-full h-12 rounded-xl bg-rose-50 text-rose-700 font-medium hover:bg-rose-100"><?= $e($t('common.delete')) ?></button>
               </form>
-              <button @click="actionTx = null" class="h-12 rounded-xl text-slate-600 font-medium hover:bg-slate-50">Annuler</button>
+              <button @click="actionTx = null" class="h-12 rounded-xl text-slate-600 font-medium hover:bg-slate-50"><?= $e($t('common.cancel')) ?></button>
             </div>
           </div>
         </template>
