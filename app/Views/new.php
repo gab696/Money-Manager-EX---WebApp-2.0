@@ -88,7 +88,7 @@ $bootData = [
   </header>
 
   <!-- ================= STEP 1 : Montant ================= -->
-  <section x-show="step === 1" x-transition.opacity class="flex-1 flex flex-col">
+  <section x-show="step === 1" class="flex-1 flex flex-col">
     <div class="flex-1 flex items-center justify-center px-4 py-4 text-center">
       <div>
         <div class="text-xs uppercase tracking-wider text-slate-400 mb-2">
@@ -130,7 +130,7 @@ $bootData = [
   </section>
 
   <!-- ================= STEP 2 : Date + Compte(s) ================= -->
-  <section x-show="step === 2" x-transition.opacity class="flex-1 px-4 pt-6 space-y-2">
+  <section x-show="step === 2" class="flex-1 px-4 pt-6 space-y-2">
 
     <button type="button" @click="openSheet('date')"
             class="w-full flex items-center gap-3 px-4 py-3 bg-white rounded-xl border border-slate-200">
@@ -166,7 +166,7 @@ $bootData = [
   </section>
 
   <!-- ================= STEP 3 : Bénéficiaire + Catégorie (Withdrawal/Deposit, si pas tout désactivé) ================= -->
-  <section x-show="step === 3 && stepCount() === 4" x-transition.opacity class="flex-1 px-4 pt-6 space-y-2">
+  <section x-show="step === 3 && stepCount() === 4" class="flex-1 px-4 pt-6 space-y-2">
 
     <?php if (!$disablePayee): ?>
     <button type="button" @click="openSheet('payee')"
@@ -196,7 +196,7 @@ $bootData = [
   </section>
 
   <!-- ================= STEP FINAL : Notes + Recap + Enregistrer ================= -->
-  <section x-show="step === stepCount()" x-transition.opacity class="flex-1 px-4 pt-6 pb-4 space-y-4">
+  <section x-show="step === stepCount()" class="flex-1 px-4 pt-6 pb-4 space-y-4">
 
     <!-- Recap -->
     <div class="bg-white rounded-2xl border border-slate-200 overflow-hidden">
@@ -248,6 +248,61 @@ $bootData = [
       <textarea x-model="notes" rows="3" placeholder="<?= $e($t('tx.notes_placeholder')) ?>"
                 class="w-full p-3 rounded-xl border border-slate-200 text-base bg-white resize-none"></textarea>
     </label>
+
+    <!-- Pièces jointes -->
+    <div>
+      <div class="flex items-center justify-between mb-1.5">
+        <span class="text-[11px] uppercase text-slate-400 tracking-wider"><?= $e($t('tx.attachments')) ?></span>
+        <span class="text-[11px] text-slate-400 tabular-nums" x-text="(existingAttachments.length + pendingFiles.length) + ''"></span>
+      </div>
+
+      <!-- Fichiers déjà stockés (mode édition) -->
+      <template x-for="att in existingAttachments" :key="'ea'+att.filename">
+        <div class="flex items-center gap-3 px-3 py-2 mb-2 bg-white rounded-xl border border-slate-200">
+          <a :href="'<?= $e($baseUrl) ?>/attachments/' + att.filename" target="_blank" rel="noopener"
+             class="flex-1 flex items-center gap-2 min-w-0">
+            <span class="h-8 w-8 rounded-lg bg-indigo-50 text-indigo-600 flex items-center justify-center text-sm">
+              <span x-show="att.is_image">🖼️</span><span x-show="!att.is_image">📄</span>
+            </span>
+            <span class="flex-1 text-sm truncate" x-text="att.display"></span>
+          </a>
+          <button type="button" @click="removeExisting(att.filename)"
+                  class="p-1.5 rounded-lg text-rose-500 hover:bg-rose-50" :aria-label="boot.strings.delete || 'Delete'">
+            <svg class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/></svg>
+          </button>
+        </div>
+      </template>
+
+      <!-- Fichiers en attente d'upload -->
+      <template x-for="(f, idx) in pendingFiles" :key="'pf'+idx+f.name">
+        <div class="flex items-center gap-3 px-3 py-2 mb-2 bg-amber-50/60 rounded-xl border border-amber-200/60">
+          <span class="h-8 w-8 rounded-lg bg-white flex items-center justify-center text-sm overflow-hidden">
+            <template x-if="f.type && f.type.startsWith('image/')">
+              <img :src="thumbFor(f)" class="h-full w-full object-cover" alt="">
+            </template>
+            <template x-if="!f.type || !f.type.startsWith('image/')">
+              <span>📄</span>
+            </template>
+          </span>
+          <div class="flex-1 min-w-0">
+            <div class="text-sm font-medium truncate" x-text="f.name"></div>
+            <div class="text-[11px] text-slate-500" x-text="fmtSize(f.size)"></div>
+          </div>
+          <button type="button" @click="removePending(idx)"
+                  class="p-1.5 rounded-lg text-slate-500 hover:bg-slate-100" :aria-label="'<?= $e($t('tx.attachments_remove')) ?>'">
+            <svg class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/></svg>
+          </button>
+        </div>
+      </template>
+
+      <!-- Bouton d'ajout (label + input caché) -->
+      <label class="w-full h-11 rounded-xl border border-dashed border-slate-300 hover:border-indigo-400 text-slate-500 hover:text-indigo-600 text-sm font-medium flex items-center justify-center gap-2 cursor-pointer transition">
+        <svg class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.414-6.586a4 4 0 00-5.656-5.656l-6.415 6.585a6 6 0 108.486 8.486L20.5 13"/></svg>
+        <?= $e($t('tx.attachments_add')) ?>
+        <input type="file" multiple accept="image/*,application/pdf" class="hidden" @change="pickFiles($event)">
+      </label>
+      <p class="mt-1.5 text-[11px] text-slate-400"><?= $e($t('tx.attachments_hint')) ?></p>
+    </div>
   </section>
 
   <!-- Tip jar discret : visible dans toutes les étapes si PayPal configuré et non masqué -->

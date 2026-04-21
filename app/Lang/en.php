@@ -101,6 +101,17 @@ return [
         'optional'          => 'Optional',
         'add'               => 'Add…',
         'amount'            => 'Amount',
+
+        // Attachments
+        'attachments'        => 'Attachments',
+        'attachments_add'    => 'Add a photo or PDF',
+        'attachments_hint'   => 'Images or PDF, up to 8 MB per file.',
+        'attachments_remove' => 'Remove',
+        'attachments_open'   => 'Open',
+        'attachments_confirm_delete' => 'Delete this attachment?',
+        'attachments_too_large' => 'File too large (max 8 MB).',
+        'attachments_bad_type'  => 'File type not supported.',
+        'attachments_save_error' => 'Error saving file.',
     ],
 
     'queue' => [

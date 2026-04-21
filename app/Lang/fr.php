@@ -101,6 +101,17 @@ return [
         'optional'          => 'Facultatif',
         'add'               => 'Ajouter…',
         'amount'            => 'Montant',
+
+        // Pièces jointes
+        'attachments'        => 'Pièces jointes',
+        'attachments_add'    => 'Ajouter une photo ou un PDF',
+        'attachments_hint'   => 'Images ou PDF, jusqu\'à 8 Mo par fichier.',
+        'attachments_remove' => 'Retirer',
+        'attachments_open'   => 'Ouvrir',
+        'attachments_confirm_delete' => 'Supprimer cette pièce jointe ?',
+        'attachments_too_large' => 'Fichier trop volumineux (max 8 Mo).',
+        'attachments_bad_type'  => 'Type de fichier non supporté.',
+        'attachments_save_error' => 'Erreur à l\'enregistrement du fichier.',
     ],
 
     'queue' => [

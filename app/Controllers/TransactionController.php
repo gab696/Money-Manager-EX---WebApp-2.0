@@ -7,6 +7,7 @@ use App\Auth;
 use App\Config;
 use App\Csrf;
 use App\Models\Account;
+use App\Models\Attachment;
 use App\Models\Category;
 use App\Models\Parameter;
 use App\Models\Payee;
@@ -96,11 +97,75 @@ final class TransactionController
             $id = Transaction::create($data);
         }
 
+        // Traitement des pièces jointes (multipart/form-data)
+        $saved = [];
+        $skipped = 0;
+        if (!empty($_FILES['attachments']) && is_array($_FILES['attachments']['name'] ?? null)) {
+            $files = $_FILES['attachments'];
+            $count = count($files['name']);
+            for ($i = 0; $i < $count; $i++) {
+                if (($files['error'][$i] ?? UPLOAD_ERR_NO_FILE) !== UPLOAD_ERR_OK) { $skipped++; continue; }
+                $stored = Attachment::store($id, [
+                    'name'     => $files['name'][$i]     ?? 'file',
+                    'tmp_name' => $files['tmp_name'][$i] ?? '',
+                    'size'     => $files['size'][$i]     ?? 0,
+                    'error'    => $files['error'][$i]    ?? UPLOAD_ERR_NO_FILE,
+                    'type'     => $files['type'][$i]     ?? '',
+                ]);
+                if ($stored) $saved[] = $stored; else $skipped++;
+            }
+        }
+
         if (self::wantsJson()) {
-            echo View::json(['ok' => true, 'id' => $id]);
+            echo View::json([
+                'ok'          => true,
+                'id'          => $id,
+                'attachments' => array_map(fn($f) => Attachment::info($f), Attachment::forTransaction($id)),
+                'saved'       => count($saved),
+                'skipped'     => $skipped,
+            ]);
             return;
         }
         header('Location: ' . Config::url('/new?saved=1'));
+    }
+
+    /**
+     * Servir une pièce jointe au navigateur (utilisateur authentifié uniquement).
+     * Le desktop MMEX utilise `services.php?download_attachment=…` (GUID auth).
+     */
+    public function downloadAttachment(array $params): void
+    {
+        Auth::requireLogin();
+        $filename = basename((string) $params['filename']);
+        $path = Attachment::path($filename);
+        if (!$path) {
+            http_response_code(404);
+            echo 'Not found';
+            return;
+        }
+        $mime = function_exists('mime_content_type') ? (mime_content_type($path) ?: 'application/octet-stream') : 'application/octet-stream';
+        header('Content-Type: ' . $mime);
+        header('Content-Length: ' . filesize($path));
+        header('Cache-Control: private, max-age=300');
+        header('Content-Disposition: inline; filename="' . basename($path) . '"');
+        readfile($path);
+    }
+
+    public function deleteAttachment(array $params): void
+    {
+        Auth::requireLogin();
+        Csrf::assertPost();
+        $txId     = (int) $params['id'];
+        $filename = (string) ($_POST['filename'] ?? '');
+
+        // Sanity : le filename doit correspondre au préfixe de la tx
+        $expected = 'tx_' . $txId . '_';
+        if ($filename === '' || !str_starts_with(basename($filename), $expected)) {
+            echo View::json(['ok' => false, 'error' => 'invalid'], 422);
+            return;
+        }
+        Attachment::deleteByName($filename);
+        echo View::json(['ok' => true]);
     }
 
     public function delete(array $params): void
@@ -127,6 +192,9 @@ final class TransactionController
 
         $paypalUrl   = \App\Db::PAYPAL_URL;
         $donorHidden = \App\Models\User::isDonorHidden((int) \App\Auth::id());
+        $existingAttachments = $tx
+            ? array_map(fn($f) => Attachment::info($f), Attachment::forTransaction((int) $tx['ID']))
+            : [];
 
         return [
             'accounts'    => $accounts,
@@ -147,6 +215,7 @@ final class TransactionController
             'jsLocale'           => self::jsLocale(),
             'paypalUrl'          => $paypalUrl,
             'donorHidden'        => $donorHidden,
+            'existingAttachments'=> $existingAttachments,
         ];
     }
 

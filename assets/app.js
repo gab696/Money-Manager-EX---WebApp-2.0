@@ -42,6 +42,10 @@ window.txForm = function () {
 
     newCat: { category: '', subcategory: '' },
 
+    // Pièces jointes
+    pendingFiles: [],                              // File objects sélectionnés mais pas encore uploadés
+    existingAttachments: boot.existingAttachments || [], // fichiers déjà stockés sur le serveur (mode édition)
+
     init() {
       if (boot.edit) {
         const t = boot.edit;
@@ -284,6 +288,40 @@ window.txForm = function () {
       }
     },
 
+    // ========== ATTACHMENTS ==========
+    pickFiles(event) {
+      const files = Array.from(event.target.files || []);
+      for (const f of files) {
+        // Limite locale : 8 MB (identique au backend)
+        if (f.size > 8 * 1024 * 1024) { this.toast(S.attachments_too_large || 'File too large'); continue; }
+        this.pendingFiles.push(f);
+      }
+      event.target.value = ''; // autorise re-sélection du même fichier
+    },
+    removePending(idx) { this.pendingFiles.splice(idx, 1); },
+    async removeExisting(filename) {
+      if (!this.edit) return;
+      if (!confirm(S.attachments_confirm_delete || 'Delete?')) return;
+      const body = new URLSearchParams({ _csrf: this.boot.csrf, filename });
+      const res = await fetch((this.boot.baseUrl || '') + '/transaction/' + this.edit.ID + '/attachment/delete', {
+        method: 'POST',
+        headers: { 'X-Requested-With': 'XMLHttpRequest', 'Content-Type': 'application/x-www-form-urlencoded' },
+        body: body.toString(),
+      });
+      const json = await res.json();
+      if (json.ok) {
+        this.existingAttachments = this.existingAttachments.filter(a => a.filename !== filename);
+      } else {
+        this.toast(S.save_error || 'Error');
+      }
+    },
+    thumbFor(file) { return URL.createObjectURL(file); },
+    fmtSize(bytes) {
+      if (bytes < 1024) return bytes + ' o';
+      if (bytes < 1024 * 1024) return (bytes / 1024).toFixed(0) + ' Ko';
+      return (bytes / (1024 * 1024)).toFixed(1) + ' Mo';
+    },
+
     // ========== SAVE ==========
     async save() {
       if (Number(this.amountRaw) <= 0) { this.toast(S.amount_required || 'Montant requis'); this.step = 1; return; }
@@ -291,20 +329,23 @@ window.txForm = function () {
       if (this.type === 'Transfer' && !this.toAccount) { this.toast(S.toaccount_required || 'Compte destination requis'); this.step = 2; return; }
 
       this.saving = true;
-      const body = new URLSearchParams({
-        _csrf: this.boot.csrf,
-        id: this.edit ? String(this.edit.ID) : '',
-        ui_type: this.type,
-        date: this.date,
-        amount: String(Number(this.amountRaw)),
-        account: this.account,
-        to_account: this.toAccount || '',
-        category: this.category?.Category || '',
-        subcategory: this.category?.SubCategory || '',
-        payee: this.payee?.PayeeName || '',
-        notes: this.notes || '',
-        status: this.boot.defaultStatus || 'N',
-      });
+
+      // On utilise FormData pour porter à la fois les champs et les fichiers.
+      // Pas de Content-Type explicite → le navigateur génère la boundary multipart.
+      const body = new FormData();
+      body.append('_csrf', this.boot.csrf);
+      body.append('id', this.edit ? String(this.edit.ID) : '');
+      body.append('ui_type', this.type);
+      body.append('date', this.date);
+      body.append('amount', String(Number(this.amountRaw)));
+      body.append('account', this.account);
+      body.append('to_account', this.toAccount || '');
+      body.append('category', this.category?.Category || '');
+      body.append('subcategory', this.category?.SubCategory || '');
+      body.append('payee', this.payee?.PayeeName || '');
+      body.append('notes', this.notes || '');
+      body.append('status', this.boot.defaultStatus || 'N');
+      for (const f of this.pendingFiles) body.append('attachments[]', f, f.name);
 
       try {
         const res = await fetch((this.boot.baseUrl || '') + '/transaction', {
@@ -312,9 +353,8 @@ window.txForm = function () {
           headers: {
             'X-Requested-With': 'XMLHttpRequest',
             'Accept': 'application/json',
-            'Content-Type': 'application/x-www-form-urlencoded',
           },
-          body: body.toString(),
+          body,
         });
         const json = await res.json();
         if (json.ok) {
@@ -334,6 +374,7 @@ window.txForm = function () {
               this.notes = '';
               this.payee = null;
               this.category = null;
+              this.pendingFiles = [];
               this.step = 1;
             }, 500);
           }

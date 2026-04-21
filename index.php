@@ -42,6 +42,8 @@ $router->get ('/new',                     [TransactionController::class, 'showNe
 $router->get ('/transaction/{id}/edit',   [TransactionController::class, 'showEdit']);
 $router->post('/transaction',             [TransactionController::class, 'save']);
 $router->post('/transaction/{id}/delete', [TransactionController::class, 'delete']);
+$router->post('/transaction/{id}/attachment/delete', [TransactionController::class, 'deleteAttachment']);
+$router->get ('/attachments/{filename}',  [TransactionController::class, 'downloadAttachment']);
 
 // File d'attente (tx pas encore aspirées par le desktop)
 $router->get('/queue', [QueueController::class, 'index']);
