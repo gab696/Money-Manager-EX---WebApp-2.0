@@ -1,6 +1,6 @@
 // MMEX Web — service worker (PWA installability + offline léger)
 
-const VERSION = 'mmex-v2.0.8';
+const VERSION = 'mmex-v2.0.9';
 const CACHE   = 'mmex-shell-' + VERSION;
 
 // Shell minimal — les URLs sont relatives au scope du SW (dossier où sw.js est servi)

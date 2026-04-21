@@ -15,7 +15,7 @@ use PDO;
 final class Db
 {
     private static ?PDO $pdo = null;
-    public const APP_VERSION = '2.0.8';
+    public const APP_VERSION = '2.0.9';
     public const API_VERSION = '1.0.1'; // version attendue par le desktop MMEX
 
     /**

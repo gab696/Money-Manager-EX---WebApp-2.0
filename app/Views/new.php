@@ -112,13 +112,13 @@ $bootData = [
         <button type="button" @click="press('4')" class="keypad-key h-14 rounded-xl bg-white border border-slate-200 text-xl font-medium tabular-nums">4</button>
         <button type="button" @click="press('5')" class="keypad-key h-14 rounded-xl bg-white border border-slate-200 text-xl font-medium tabular-nums">5</button>
         <button type="button" @click="press('6')" class="keypad-key h-14 rounded-xl bg-white border border-slate-200 text-xl font-medium tabular-nums">6</button>
-        <button type="button" @click="press('.')" class="keypad-key h-14 rounded-xl bg-white border border-slate-200 text-xl font-medium tabular-nums">,</button>
+        <button type="button" @click="amountRaw='0'" class="keypad-key h-14 rounded-xl bg-white border border-slate-200 text-slate-500 text-xs font-medium">CE</button>
         <button type="button" @click="press('1')" class="keypad-key h-14 rounded-xl bg-white border border-slate-200 text-xl font-medium tabular-nums">1</button>
         <button type="button" @click="press('2')" class="keypad-key h-14 rounded-xl bg-white border border-slate-200 text-xl font-medium tabular-nums">2</button>
         <button type="button" @click="press('3')" class="keypad-key h-14 rounded-xl bg-white border border-slate-200 text-xl font-medium tabular-nums">3</button>
         <button type="button" @click="press('00')" class="keypad-key h-14 rounded-xl bg-white border border-slate-200 text-base font-medium tabular-nums">00</button>
         <button type="button" @click="press('0')" class="keypad-key h-14 rounded-xl bg-white border border-slate-200 text-xl font-medium tabular-nums col-span-2">0</button>
-        <button type="button" @click="amountRaw='0'" class="keypad-key h-14 rounded-xl bg-white border border-slate-200 text-slate-500 text-xs font-medium">CE</button>
+        <button type="button" @click="press('.')" class="keypad-key h-14 rounded-xl bg-white border border-slate-200 text-xl font-medium tabular-nums">,</button>
         <button type="button" @click="pasteQuick()" class="keypad-key h-14 rounded-xl bg-white border border-slate-200 text-slate-500 text-xs font-medium">↩</button>
       </div>
     </div>
