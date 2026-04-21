@@ -7,7 +7,12 @@ Mobile-first **step-by-step** entry flow, full-screen numeric keypad, bottom-she
 > the desktop at the next sync. No balance, no full history, no reporting —
 > all of that lives on the desktop side.
 
-![screenshot placeholder](docs/screenshot1.jpg)
+<p align="center">
+  <img src="docs/screenshot1.jpg" alt="Amount entry keypad" width="220">
+  <img src="docs/screenshot2.jpg" alt="Date and account step" width="220">
+  <img src="docs/screenshot3.jpg" alt="Summary before save" width="220">
+  <img src="docs/screenshot4.jpg" alt="Pending queue" width="220">
+</p>
 
 ## Features
 
