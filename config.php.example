@@ -1,0 +1,23 @@
+<?php
+// MMEX Web — configuration.
+// Le fichier est OPTIONNEL : si absent, la webapp utilise les défauts ci-dessous
+// et crée automatiquement MMEX_New_Transaction.db à la racine au premier lancement.
+// Copie ce fichier vers config.php pour personnaliser.
+
+return [
+    'app' => [
+        'name'         => 'MMEX Web',
+        'base_url'     => '',              // '' pour déploiement à la racine, '/mmex' pour un sous-dossier
+        'timezone'     => 'Europe/Zurich',
+        'debug'        => false,
+        'session_name' => 'mmex_sid',
+    ],
+
+    'db' => [
+        // Chemin du fichier SQLite. Laisser null pour utiliser la racine du projet.
+        'path' => null,
+    ],
+
+    // Dossier des pièces jointes (créé auto si absent)
+    'attachments_path' => null,
+];
