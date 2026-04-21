@@ -7,7 +7,7 @@ Mobile-first **step-by-step** entry flow, full-screen numeric keypad, bottom-she
 > the desktop at the next sync. No balance, no full history, no reporting —
 > all of that lives on the desktop side.
 
-![screenshot placeholder](docs/screenshot.png)
+![screenshot placeholder](docs/screenshot1.png)
 
 ## Features
 
