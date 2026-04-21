@@ -49,7 +49,7 @@ return [
     ],
 
     'tx' => [
-        'new'               => 'Nouvelle',
+        'new'               => 'Nouveau',
         'edit'              => 'Modifier',
         'withdrawal'        => 'Débit',
         'deposit'           => 'Crédit',
